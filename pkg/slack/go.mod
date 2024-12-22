@@ -1,4 +1,4 @@
-module github.com/smartertravel/partner-feed/lib/slack
+module github.com/Thiti-Dev/gh-pr-gamify-v1/pkg/slack
 
 go 1.23.1
 
