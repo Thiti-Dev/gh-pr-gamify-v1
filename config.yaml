@@ -1,0 +1,9 @@
+github:
+  token: "n o n e o f y o u r b u s i n e s s"
+  repositories:
+    - name: "partner-feed"
+      organization: "smartertravel"
+    - name: "datasource-converter"
+      organization: "smartertravel"
+    - name: "data-platform"
+      organization: "smartertravel"
