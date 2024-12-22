@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	GithubBearerToken string
+	SlackWebhookURL   string
 }
 
 // LoadConfig reads configuration from environment files and environment variables
@@ -46,15 +47,21 @@ func LoadConfig() (*Config, error) {
 
 	// Set default values
 	viper.SetDefault("GITHUB_BEARER_TOKEN", "")
+	viper.SetDefault("SLACK_WEBHOOK_URL", "")
 
 	// Create config instance
 	config := &Config{
 		GithubBearerToken: viper.GetString("GITHUB_BEARER_TOKEN"),
+		SlackWebhookURL:   viper.GetString("SLACK_WEBHOOK_URL"),
 	}
 
 	// Validate required fields
 	if config.GithubBearerToken == "" {
 		return nil, fmt.Errorf("GITHUB_BEARER_TOKEN is required")
+	}
+
+	if config.SlackWebhookURL == "" {
+		return nil, fmt.Errorf("SLACK_WEBHOOK_URL is required")
 	}
 
 	return config, nil
