@@ -79,10 +79,28 @@ func (s *PRSummaryService) CollectReviews() {
 	s.IsReadyToBeSummarized = true
 }
 
-func (s *PRSummaryService) Summarize() error {
+func (s *PRSummaryService) Summarize() ([]PRSummaryConcluderItem, error) {
 	if !s.IsReadyToBeSummarized {
-		return fmt.Errorf("not yet been ready for summarizing")
+		return nil, fmt.Errorf("not yet been ready for summarizing")
 	}
 
-	return nil
+	list := []PRSummaryConcluderItem{}
+
+	// accumulation phase
+	for _, f := range s.PRs {
+		state, _ := f.GetPRState()
+		reviews, found := s.CacheCtrl.Get(f.Ent.Number)
+		if !found {
+			return nil, fmt.Errorf("failed to get cached review from cache-ctrl with PR: %d", f.Ent.Number)
+		}
+		list = append(list, PRSummaryConcluderItem{
+			FormattedRepositoryPath: s.Fetcher.GetFormattedRepositoryPath(),
+			CreatedAt:               f.Ent.CreatedAt,
+			Status:                  state,
+			Reviewers:               reviews,
+			Ent:                     *f.Ent,
+		})
+	}
+
+	return list, nil
 }
