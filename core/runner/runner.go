@@ -6,36 +6,34 @@ import (
 
 	"github.com/Thiti-Dev/gh-pr-gamify-v1/core/fetcher"
 	"github.com/Thiti-Dev/gh-pr-gamify-v1/models"
+	"github.com/Thiti-Dev/gh-pr-gamify-v1/pkg/config"
+	"github.com/Thiti-Dev/gh-pr-gamify-v1/pkg/slack"
 	"github.com/Thiti-Dev/gh-pr-gamify-v1/services"
 )
 
 type Runner struct {
 	githubFetchers []fetcher.FetcherI
+	appConfig      *config.Config
 }
 
-func NewRunner(fetchProcessList []fetcher.FetcherI) *Runner {
+func NewRunner(fetchProcessList []fetcher.FetcherI, conf *config.Config) *Runner {
 	return &Runner{
 		githubFetchers: fetchProcessList,
+		appConfig:      conf,
 	}
 }
 
 func (r *Runner) Run() error {
-	_now := time.Now().UTC()
+	slackAlert := slack.NewSlack(r.appConfig.SlackWebhookURL)
 
-	yesterdayMidnightUTC := time.Date(
-		_now.Year(), _now.Month(), _now.Day()-11,
-		0, 0, 0, 0,
-		time.UTC,
-	)
-
-	now := yesterdayMidnightUTC
-
+	now := time.Now().UTC()
 	nDaysAgo := now.AddDate(0, 0, -365)
 
 	basedPRServ := services.NewPRService(now)
 	summaryCacheControl := services.NewPRSummaryCacheControl()
 
-	// TODO: iterate over the fetchers
+	stagingSummarization := make([]services.PRSummaryConcluderItem, 0)
+
 	for _, fetcher := range r.githubFetchers {
 		res, err := fetcher.GetPullRequestList(models.DateRange{From: nDaysAgo, To: now})
 		if err != nil {
@@ -57,10 +55,17 @@ func (r *Runner) Run() error {
 
 		summaryServ := services.NewPRSummaryService(now, prServs, summaryCacheControl, fetcher)
 		summaryServ.CollectReviews()
-		err = summaryServ.Summarize()
+		summarizedList, err := summaryServ.Summarize()
 		if err != nil {
 			return err
 		}
+
+		stagingSummarization = append(stagingSummarization, summarizedList...)
 	}
-	return nil
+
+	summaryConcluder := services.NewPRSummaryConcluderService(now, stagingSummarization, slackAlert)
+
+	err := summaryConcluder.SummarizeIntoSlackChannel()
+
+	return err
 }
