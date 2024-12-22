@@ -6,6 +6,7 @@ import (
 
 	"github.com/Thiti-Dev/gh-pr-gamify-v1/core/fetcher"
 	"github.com/Thiti-Dev/gh-pr-gamify-v1/models"
+	prState "github.com/Thiti-Dev/gh-pr-gamify-v1/types/pr-state"
 )
 
 type PRService struct {
@@ -65,11 +66,19 @@ func (s *PRService) GetFilteredListFromPRs(prs []models.PRItem) []models.PRItem 
 	return filteredPrs
 }
 
-func (s *PRService) GetPRState() (bool, error) {
+func (s *PRService) GetPRState() (prState.PRState, error) {
 	if s.Ent == nil {
-		return false, fmt.Errorf("failed getting pr's state as the ent has not been yet initiate")
+		return prState.PRStateUnknown, fmt.Errorf("failed getting pr's state as the ent has not been yet initiate")
 	}
-	return s.Ent.PullRequest.MergedAt != nil && s.Ent.PullRequest.MergedAt.Before(s.OperatedTime), nil
+	if s.Ent.PullRequest.MergedAt != nil && s.Ent.PullRequest.MergedAt.Before(s.OperatedTime) {
+		return prState.PRStateMerged, nil
+	}
+
+	if s.Ent.ClosedAt != nil && s.Ent.ClosedAt.Before(s.OperatedTime) {
+		return prState.PRStateClosed, nil
+	}
+
+	return prState.PRStateOpen, nil
 }
 
 func (s *PRService) GetPRReview(f fetcher.FetcherI) ([]models.PRReview, error) {
