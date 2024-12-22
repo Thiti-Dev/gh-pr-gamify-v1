@@ -15,10 +15,18 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// TODO: load from the config
-	smarterMailFetcher := fetcher.NewFetcher(requester.NewRestyRequester(), fetcher.RepositoryPointer{Token: cfg.GithubBearerToken, Organiztion: "smartertravel", Repository: "partner-feed"})
+	appConf, err := config.LoadApplicationConfig()
+	if err != nil {
+		log.Fatalf("Failed to load application config: %v", err)
+	}
 
-	runner := runner.NewRunner([]fetcher.FetcherI{smarterMailFetcher})
+	fetchers := []fetcher.FetcherI{}
+
+	for _, repo := range appConf.Github.Repositories {
+		fetchers = append(fetchers, fetcher.NewFetcher(requester.NewRestyRequester(), fetcher.RepositoryPointer{Token: cfg.GithubBearerToken, Organiztion: repo.Organization, Repository: repo.Name}))
+	}
+
+	runner := runner.NewRunner(fetchers, cfg)
 	err = runner.Run()
 	if err != nil {
 		log.Fatalf("Failed to run: %v", err)
