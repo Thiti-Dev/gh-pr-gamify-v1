@@ -120,22 +120,26 @@ func (svc *PRSummaryConcluderService) SummarizeIntoSlackChannel() error {
 		}
 	}
 
-	formattedApprovingScore := fmt.Sprintf("Gamification result 🎮:\n```%-10s %-30s %-5s %-5s\n%s\n", "Place", "Name", "Score", "Earn", strings.Repeat("-", 32*2))
-	sortedApprovingCount := svc.createSortedApproveCountFromMap(mappedApprovingCountByLogin)
+	var formattedApprovingScore string
 
-	for i, ac := range sortedApprovingCount {
-		renderedMedal := "🧩"
-		if i == 0 {
-			renderedMedal = "🥇"
-		} else if i == 1 {
-			renderedMedal = "🥈"
-		} else if i == 2 {
-			renderedMedal = "🥉"
+	if len(mappedApprovingCountByLogin) != 0 {
+		formattedApprovingScore := fmt.Sprintf("Gamification result 🎮:\n```%-10s %-30s %-5s %-5s\n%s\n", "Place", "Name", "Score", "Earn", strings.Repeat("-", 32*2))
+		sortedApprovingCount := svc.createSortedApproveCountFromMap(mappedApprovingCountByLogin)
+
+		for i, ac := range sortedApprovingCount {
+			renderedMedal := "🧩"
+			if i == 0 {
+				renderedMedal = "🥇"
+			} else if i == 1 {
+				renderedMedal = "🥈"
+			} else if i == 2 {
+				renderedMedal = "🥉"
+			}
+
+			formattedApprovingScore += fmt.Sprintf("%-10d %-30s %-5d %-5s\n", i+1, ac.Key, ac.Value, renderedMedal)
 		}
-
-		formattedApprovingScore += fmt.Sprintf("%-10d %-30s %-5d %-5s\n", i+1, ac.Key, ac.Value, renderedMedal)
+		formattedApprovingScore += "```"
 	}
-	formattedApprovingScore += "```"
 
 	err := svc.slack.Post(fmt.Sprintf("Github PR Notify/Summarization (%s) - (%s)\n%s\n\n%s", formattedYesterdayMidnightUTC, formattedOperateDate, formattedOnGoingPR, formattedApprovingScore))
 
