@@ -4,6 +4,7 @@ require (
 	github.com/Thiti-Dev/gh-pr-gamify-v1/pkg/slack v0.0.0-00010101000000-000000000000
 	github.com/go-resty/resty/v2 v2.16.2
 	github.com/spf13/viper v1.19.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 replace github.com/Thiti-Dev/gh-pr-gamify-v1/pkg/slack => ./pkg/slack
@@ -30,7 +31,6 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 go 1.23.1
