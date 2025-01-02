@@ -123,7 +123,7 @@ func (svc *PRSummaryConcluderService) SummarizeIntoSlackChannel() error {
 	var formattedApprovingScore string
 
 	if len(mappedApprovingCountByLogin) != 0 {
-		formattedApprovingScore := fmt.Sprintf("Gamification result 🎮:\n```%-10s %-30s %-5s %-5s\n%s\n", "Place", "Name", "Score", "Earn", strings.Repeat("-", 32*2))
+		formattedApprovingScore = fmt.Sprintf("Gamification result 🎮:\n```%-10s %-30s %-5s %-5s\n%s\n", "Place", "Name", "Score", "Earn", strings.Repeat("-", 32*2))
 		sortedApprovingCount := svc.createSortedApproveCountFromMap(mappedApprovingCountByLogin)
 
 		for i, ac := range sortedApprovingCount {
